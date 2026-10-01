@@ -1,11 +1,14 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <cmath>
 #include <iostream>
 #include <random>
 #include <utility>
 #include <vector>
 
+int possible_delta_r[25] = {0, -1, 0, 1, -1, -1, 1, 1, -1, -2, -2, -1, 1, 2, 2, 1, 0, -2, 0, 2};
+int possible_delta_c[25] = {1, 0, -1, 0, 1, -1, -1, 1, 2, 1, -1, -2, -2, -1, 1, 2, 2, 0, -2, 0};
 std::mt19937 rng(114514);
 extern int rows;         // The count of rows of the game map.
 extern int columns;      // The count of columns of the game map.
@@ -126,9 +129,45 @@ void Decide() {
             }
           }
         }
+
+        // 找周边的格点，一起判断
+        for (int i = 0; i < 19; ++i) {
+          int point2_r = possible_delta_r[i] + r;
+          int point2_c = possible_delta_c[i] + c;
+          if (point2_r >= 0 && point2_r <= rows - 1 && point2_c >= 0 && point2_c <= columns - 1) {
+            int unknown_not_in_point2_range = 0;
+            int least_unknown_mine_in_point2_range = 0;
+            for (int near_row = r - 1; near_row <= r + 1; ++near_row) {
+              for (int near_column = c - 1; near_column <= c + 1; ++near_column) {
+                if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
+                    current_map[near_row][near_column] == '?') {
+                  if (abs(point2_r - near_row) > 1 || abs(point2_c - near_column) > 1) {
+                    unknown_not_in_point2_range++;
+                  }
+                }
+              }
+            }
+            least_unknown_mine_in_point2_range =
+                (current_map[r][c] - '0') - seen_mines[r][c] - unknown_not_in_point2_range;
+            if (current_map[point2_r][point2_c] - '0' == least_unknown_mine_in_point2_range) {
+              for (int near_row = point2_r - 1; near_row <= point2_r + 1; ++near_row) {
+                for (int near_column = point2_c - 1; near_column <= point2_c + 1; ++near_column) {
+                  if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
+                      current_map[near_row][near_column] == '?') {
+                    if (abs(r - near_row) > 1 || abs(c - near_column) > 1) {
+                      Execute(near_row, near_column, 0);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
+
   // 随机大法
   int try_this_row = rng() % rows;
   int try_this_column = rng() % columns;
