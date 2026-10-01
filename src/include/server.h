@@ -16,7 +16,7 @@ int total_mines;  // The count of mines of the game map. You MUST NOT modify its
                   // variable in function InitMap. It will be used in the advanced task.
 int game_state;  // The state of the game, 0 for continuing, 1 for winning, -1 for losing. You MUST NOT modify its name.
 char **map;
-int **visited;  // 0 表示未访问过，1 表示非雷访问过或雷标记过，2 表示非雷被错标成雷
+int **visited;  // 0 表示未访问过，1 表示非雷访问过或雷标记过，2 表示非雷被错标成雷或者访问到未标的雷
 int **near_mine_count;
 // if map[i][j] with a mine is marked, visted[i][j]=1; if map[i][j] with no mine is visited, visted[i][j]=1;
 int marked_mine_count;
@@ -125,6 +125,7 @@ void VisitBlock(int r, int c) {
     }
   } else {
     game_state = -1;
+    visited[r][c] = 2;
   }
 }
 
@@ -235,7 +236,10 @@ void ExitGame() {
   } else {
     std::cout << "GAME OVER!\n";
   }
-  std::cout << visit_count << ' ' << marked_mine_count << '\n';
+  if (game_state == 1) {
+    marked_mine_count = total_mines;
+  }
+  std::cout << visit_count << ' ' << marked_mine_count;
   for (int i = 0; i < rows; ++i) {
     delete[] map[i];
     delete[] visited[i];
@@ -301,6 +305,7 @@ void PrintMap() {
     }
     std::cout << '\n';
   }
+  std::cerr << marked_mine_count << '\n';
 }
 
 #endif
