@@ -147,6 +147,7 @@ void Decide() {
                 }
               }
             }
+
             least_unknown_mine_in_point2_range =
                 (current_map[r][c] - '0') - seen_mines[r][c] - unknown_not_in_point2_range;
             if (current_map[point2_r][point2_c] - '0' ==
@@ -163,18 +164,30 @@ void Decide() {
                 }
               }
             }
+            int shared_mine_at_most = (current_map[point2_r][point2_c] - '0') - seen_mines[point2_r][point2_c];
+            if ((current_map[r][c] - '0') - seen_mines[r][c] - shared_mine_at_most >= unknown_not_in_point2_range) {
+              for (int near_row = r - 1; near_row <= r + 1; ++near_row) {
+                for (int near_column = c - 1; near_column <= c + 1; ++near_column) {
+                  if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
+                      current_map[near_row][near_column] == '?') {
+                    if (abs(point2_r - near_row) > 1 || abs(point2_c - near_column) > 1) {
+                      Execute(near_row, near_column, 1);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
     }
   }
 
-  // 随机大法
+  //   随机大法
   int try_this_row = rng() % rows;
   int try_this_column = rng() % columns;
   Execute(try_this_row, try_this_column, 0);
 }
-/*
-两个有重叠地区的格子
-*/
+
 #endif
