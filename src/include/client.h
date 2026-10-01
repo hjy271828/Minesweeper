@@ -149,7 +149,8 @@ void Decide() {
             }
             least_unknown_mine_in_point2_range =
                 (current_map[r][c] - '0') - seen_mines[r][c] - unknown_not_in_point2_range;
-            if (current_map[point2_r][point2_c] - '0' == least_unknown_mine_in_point2_range) {
+            if (current_map[point2_r][point2_c] - '0' ==
+                least_unknown_mine_in_point2_range + seen_mines[point2_r][point2_c]) {
               for (int near_row = point2_r - 1; near_row <= point2_r + 1; ++near_row) {
                 for (int near_column = point2_c - 1; near_column <= point2_c + 1; ++near_column) {
                   if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
