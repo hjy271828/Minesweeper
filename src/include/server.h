@@ -15,6 +15,12 @@ int columns;      // The count of columns of the game map. You MUST NOT modify i
 int total_mines;  // The count of mines of the game map. You MUST NOT modify its name. You should initialize this
                   // variable in function InitMap. It will be used in the advanced task.
 int game_state;  // The state of the game, 0 for continuing, 1 for winning, -1 for losing. You MUST NOT modify its name.
+char **map;
+int **visited;  // 0 表示未访问过，1 表示非雷访问过或雷标记过，2 表示非雷被错标成雷
+int **near_mine_count;
+// if map[i][j] with a mine is marked, visted[i][j]=1; if map[i][j] with no mine is visited, visted[i][j]=1;
+int marked_mine_count;
+int visit_count;
 
 /**
  * @brief The definition of function InitMap()
@@ -30,7 +36,39 @@ int game_state;  // The state of the game, 0 for continuing, 1 for winning, -1 f
  */
 void InitMap() {
   std::cin >> rows >> columns;
-  // TODO (student): Implement me!
+  game_state = 0;
+  total_mines = 0;
+  visit_count = 0;
+  marked_mine_count = 0;
+  map = new char *[rows + 1];
+  visited = new int *[rows + 1];
+  near_mine_count = new int *[rows + 1];
+  for (int i = 0; i < rows; ++i) {
+    map[i] = new char[columns + 1];
+    visited[i] = new int[columns + 1];
+    near_mine_count[i] = new int[columns + 1];
+    for (int j = 0; j < columns; ++j) {
+      std::cin >> map[i][j];
+      visited[i][j] = 0;
+      if (map[i][j] == 'X') {
+        total_mines++;
+      }
+    }
+  }
+  for (int i = 0; i < rows; ++i) {
+    for (int j = 0; j < columns; ++j) {
+      int near_mine_i_j = 0;
+      for (int near_rows = i - 1; near_rows <= i + 1; ++near_rows) {
+        for (int near_columns = j - 1; near_columns <= j + 1; ++near_columns) {
+          if (near_rows >= 0 && near_rows <= rows - 1 && near_columns >= 0 && near_columns <= columns - 1 &&
+              map[near_rows][near_columns] != '.') {
+            near_mine_i_j++;
+          }
+        }
+      }
+      near_mine_count[i][j] = near_mine_i_j;
+    }
+  }
 }
 
 /**
@@ -64,7 +102,30 @@ void InitMap() {
  * @note For invalid operation, you should not do anything.
  */
 void VisitBlock(int r, int c) {
-  // TODO (student): Implement me!
+  if (r < 0 || r >= rows || c < 0 || c >= columns) {  // 如果访问坐标在map外
+    return;
+  }
+  if (visited[r][c]) {  // 如果已经访问或标记为雷
+    return;
+  }
+  visited[r][c] = 1;
+  if (map[r][c] == '.') {
+    game_state = 0;
+    visit_count++;
+    if (visit_count == rows * columns - total_mines) {
+      game_state = 1;
+      return;
+    }
+    if (near_mine_count[r][c] == 0) {
+      for (int near_rows = r - 1; near_rows <= r + 1; ++near_rows) {
+        for (int near_columns = c - 1; near_columns <= c + 1; ++near_columns) {
+          VisitBlock(near_rows, near_columns);
+        }
+      }
+    }
+  } else {
+    game_state = -1;
+  }
 }
 
 /**
@@ -101,7 +162,20 @@ void VisitBlock(int r, int c) {
  * @note For invalid operation, you should not do anything.
  */
 void MarkMine(int r, int c) {
-  // TODO (student): Implement me!
+  if (r < 0 || r >= rows || c < 0 || c >= columns) {  // 如果访问坐标在map外
+    return;
+  }
+  if (visited[r][c]) {  // 如果已经访问或标记为雷
+    return;
+  }
+  visited[r][c] = 1;
+  if (map[r][c] != '.') {
+    game_state = 0;
+    marked_mine_count++;
+  } else {
+    game_state = -1;
+    visited[r][c] = 2;  // 表示非雷被标成雷
+  }
 }
 
 /**
@@ -121,7 +195,29 @@ void MarkMine(int r, int c) {
  * And the game ends (and player wins).
  */
 void AutoExplore(int r, int c) {
-  // TODO (student): Implement me!
+  if (r < 0 || r >= rows || c < 0 || c >= columns) {  // 如果访问坐标在map外
+    return;
+  }
+  if (visited[r][c] != 1 || map[r][c] != '.') {  // 只接受已被访问过的非地雷格子
+    return;
+  }
+  int marked_mine_count_r_c = 0;
+  for (int near_rows = r - 1; near_rows <= r + 1; ++near_rows) {
+    for (int near_columns = c - 1; near_columns <= c + 1; ++near_columns) {
+      if (near_rows >= 0 && near_rows <= rows - 1 && near_columns >= 0 && near_columns <= columns - 1) {
+        if (visited[near_rows][near_columns] == 1 && map[near_rows][near_columns] != '.') {
+          marked_mine_count_r_c++;
+        }
+      }
+    }
+  }
+  if (marked_mine_count_r_c == near_mine_count[r][c]) {
+    for (int near_rows = r - 1; near_rows <= r + 1; ++near_rows) {
+      for (int near_columns = c - 1; near_columns <= c + 1; ++near_columns) {
+        VisitBlock(near_rows, near_columns);
+      }
+    }
+  }
 }
 
 /**
@@ -134,7 +230,20 @@ void AutoExplore(int r, int c) {
  * @note If the player wins, we consider that ALL mines are correctly marked.
  */
 void ExitGame() {
-  // TODO (student): Implement me!
+  if (game_state == 1) {
+    std::cout << "YOU WIN!\n";
+  } else {
+    std::cout << "GAME OVER!\n";
+  }
+  std::cout << visit_count << ' ' << marked_mine_count << '\n';
+  for (int i = 0; i < rows; ++i) {
+    delete[] map[i];
+    delete[] visited[i];
+    delete[] near_mine_count[i];
+  }
+  delete[] map;
+  delete[] visited;
+  delete[] near_mine_count;
   exit(0);  // Exit the game immediately
 }
 
@@ -163,7 +272,35 @@ void ExitGame() {
  * @note Use std::cout to print the game map, especially when you want to try the advanced task!!!
  */
 void PrintMap() {
-  // TODO (student): Implement me!
+  if (game_state == 1) {
+    for (int r = 0; r < rows; ++r) {
+      for (int c = 0; c < columns; ++c) {
+        if (map[r][c] == '.') {
+          std::cout << near_mine_count[r][c];
+        } else {
+          std::cout << '@';
+        }
+      }
+      std::cout << '\n';
+    }
+    return;
+  }
+  for (int r = 0; r < rows; ++r) {
+    for (int c = 0; c < columns; ++c) {
+      if (visited[r][c] == 1) {
+        if (map[r][c] == '.') {
+          std::cout << near_mine_count[r][c];
+        } else {
+          std::cout << '@';
+        }
+      } else if (visited[r][c] == 2) {
+        std::cout << 'X';
+      } else {
+        std::cout << '?';
+      }
+    }
+    std::cout << '\n';
+  }
 }
 
 #endif
