@@ -195,13 +195,12 @@ void Decide() {
   // 用三个格点信息，一起判断
   for (int r = 0; r < rows; ++r) {
     for (int c = 0; c < columns; ++c) {
-      if (current_map[r][c] != '@' && current_map[r][c] != '?' && (current_map[r][c] - '0') > seen_mines[r][c]) {
+      if (current_map[r][c] != '@' && current_map[r][c] != '?') {
         for (int i = 0; i < 19; ++i) {
           int point2_r = possible_delta_r[i] + r;
           int point2_c = possible_delta_c[i] + c;
           if (point2_r >= 0 && point2_r <= rows - 1 && point2_c >= 0 && point2_c <= columns - 1 &&
-              current_map[point2_r][point2_c] >= '0' && current_map[point2_r][point2_c] <= '9' &&
-              (current_map[point2_r][point2_c] - '0') > seen_mines[point2_r][point2_c]) {
+              current_map[point2_r][point2_c] >= '0' && current_map[point2_r][point2_c] <= '9') {
             int unknown_not_in_point2_range = 0;
             int unknown_in_point2_range = 0;
             int least_unknown_mine_in_point2_range = 0;
@@ -227,8 +226,7 @@ void Decide() {
                 continue;
               }
               if (point3_r >= 0 && point3_r <= rows - 1 && point3_c >= 0 && point3_c <= columns - 1 &&
-                  current_map[point3_r][point3_c] >= '0' && current_map[point3_r][point3_c] <= '9' &&
-                  (current_map[point3_r][point3_c] - '0') > seen_mines[point3_r][point3_c]) {
+                  current_map[point3_r][point3_c] >= '0' && current_map[point3_r][point3_c] <= '9') {
                 int unknown_point2_mine_not_in_point1_range_at_most = (current_map[point2_r][point2_c] - '0') -
                                                                       seen_mines[point2_r][point2_c] -
                                                                       least_unknown_mine_in_point2_range;
@@ -325,24 +323,21 @@ void Decide() {
   }
 
   //   随机大法
-  //   int try_this_row = rng() % rows;
-  //   int try_this_column = rng() % columns;
-  //   Execute(try_this_row, try_this_column, 0);
-  //   std::vector<point> remaining_unknown_points;
-  //   for (int r = 0; r < rows; ++r) {
-  //     for (int c = 0; c < columns; ++c) {
-  //       if (current_map[r][c] == '?') {
-  //         point pt;
-  //         pt.r = r;
-  //         pt.c = c;
-  //         remaining_unknown_points.push_back(pt);
-  //       }
-  //     }
-  //   }
-  //   int remaining_unknown_points_count = remaining_unknown_points.size();
-  //   int try_this_point = rng() % remaining_unknown_points_count;
-  //   Execute(remaining_unknown_points[try_this_point].r, remaining_unknown_points[try_this_point].c, 0);
-  //   return;
+  std::vector<point> remaining_unknown_points;
+  for (int r = 0; r < rows; ++r) {
+    for (int c = 0; c < columns; ++c) {
+      if (current_map[r][c] == '?') {
+        point pt;
+        pt.r = r;
+        pt.c = c;
+        remaining_unknown_points.push_back(pt);
+      }
+    }
+  }
+  int remaining_unknown_points_count = remaining_unknown_points.size();
+  int try_this_point = rng() % remaining_unknown_points_count;
+  Execute(remaining_unknown_points[try_this_point].r, remaining_unknown_points[try_this_point].c, 0);
+  return;
 }
 
 #endif
