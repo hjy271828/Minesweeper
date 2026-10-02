@@ -239,6 +239,7 @@ void Decide() {
                 int unknown_point2_mine_not_in_point1_range_but_in_point3_range_at_least = 0;
                 int unknown_point3_in_point1_range_or_not_in_point2_range = 0;
                 int unknown_point3_not_in_point1_range_but_in_point2_range = 0;
+                int unknown_point3_not_in_point2_range = 0;
                 int unknown_shared_by_point123 = 0;
                 int unknown_shared_by_point23 = 0;
                 int unknown_point2_not_in_point1_range_and_not_in_point3_range = 0;
@@ -254,6 +255,9 @@ void Decide() {
                       }
                       if ((abs(point2_r - near_row) > 1 || abs(point2_c - near_column) > 1) ||
                           abs(r - near_row) <= 1 && abs(c - near_column) <= 1) {
+                        if (abs(point2_r - near_row) > 1 || abs(point2_c - near_column) > 1) {
+                          unknown_point3_not_in_point2_range++;
+                        }
                         unknown_point3_in_point1_range_or_not_in_point2_range++;
                       } else {
                         unknown_point3_not_in_point1_range_but_in_point2_range++;
@@ -313,6 +317,47 @@ void Decide() {
                           std::cerr << "point1:" << '\n' << r << ' ' << c << '\n';
                           std::cerr << "point2:" << '\n' << point2_r << ' ' << point2_c << '\n';
                           std::cerr << "point3:" << '\n' << point3_r << ' ' << point3_c << '\n';
+                          Execute(near_row, near_column, 1);
+                          return;
+                        }
+                      }
+                    }
+                  }
+                }
+
+                int unknown_point2_mine_in_point3_range_at_least =
+                    (current_map[point2_r][point2_c] - '0') - seen_mines[point2_r][point2_c] -
+                    unknown_point2_not_in_point1_range_and_not_in_point3_range - point12_shared_unseen_mine_at_most;
+                if (current_map[point3_r][point3_c] - '0' - seen_mines[point3_r][point3_c] <=
+                        unknown_point2_mine_in_point3_range_at_least &&
+                    unknown_point3_not_in_point2_range) {
+                  for (int near_row = point3_r - 1; near_row <= point3_r + 1; ++near_row) {
+                    for (int near_column = point3_c - 1; near_column <= point3_c + 1; ++near_column) {
+                      if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
+                          current_map[near_row][near_column] == '?') {
+                        if (abs(point2_r - near_row) > 1 || abs(point2_c - near_column) > 1) {
+                          Execute(near_row, near_column, 0);
+                          return;
+                        }
+                      }
+                    }
+                  }
+                }
+
+                int point123_shared_unseen_mine_at_most =
+                    std::min(unknown_shared_by_point123, point12_shared_unseen_mine_at_most);
+                int point23_shared_unseen_mine_at_most =
+                    unknown_point3_mine_not_in_point1_range_but_in_point2_range_at_most +
+                    point123_shared_unseen_mine_at_most;
+                if (current_map[point3_r][point3_c] - '0' - seen_mines[point3_r][point3_c] -
+                            point23_shared_unseen_mine_at_most >=
+                        unknown_point3_not_in_point2_range &&
+                    unknown_point3_not_in_point2_range) {
+                  for (int near_row = point3_r - 1; near_row <= point3_r + 1; ++near_row) {
+                    for (int near_column = point3_c - 1; near_column <= point3_c + 1; ++near_column) {
+                      if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
+                          current_map[near_row][near_column] == '?') {
+                        if (abs(point2_r - near_row) > 1 || abs(point2_c - near_column) > 1) {
                           Execute(near_row, near_column, 1);
                           return;
                         }
