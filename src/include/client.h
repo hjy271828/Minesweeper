@@ -1,6 +1,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <random>
@@ -10,7 +11,10 @@
 struct point {
   int r;
   int c;
+  double mine_probability;
 };
+
+bool my_compare(point pt1, point pt2) { return pt1.mine_probability < pt2.mine_probability; }
 
 int possible_delta_r[25] = {0, -1, 0, 1, -1, -1, 1, 1, -1, -2, -2, -1, 1, 2, 2, 1, 0, -2, 0, 2};
 int possible_delta_c[25] = {1, 0, -1, 0, 1, -1, -1, 1, 2, 1, -1, -2, -2, -1, 1, 2, 2, 0, -2, 0};
@@ -77,6 +81,8 @@ void InitGame() {
  */
 void ReadMap() {
   // TODO (student): Implement me!
+  total_seen_mines = 0;
+  total_unknown = 0;
   for (int r = 0; r < rows; ++r) {
     for (int c = 0; c < columns; ++c) {
       std::cin >> current_map[r][c];
@@ -322,7 +328,7 @@ void Decide() {
     }
   }
 
-  //   随机大法
+  // 找是雷概率最小的不确定点进行尝试
   std::vector<point> remaining_unknown_points;
   for (int r = 0; r < rows; ++r) {
     for (int c = 0; c < columns; ++c) {
@@ -330,13 +336,50 @@ void Decide() {
         point pt;
         pt.r = r;
         pt.c = c;
+        double pt_mine_probability = 0;
+        bool no_number_around = 1;
+        for (int near_row = r - 1; near_row <= r + 1; ++near_row) {
+          for (int near_column = c - 1; near_column <= c + 1; ++near_column) {
+            if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
+                current_map[near_row][near_column] != '?' && current_map[near_row][near_column] != '@' &&
+                seen_unknown[near_row][near_column]) {
+              no_number_around = 0;
+              double mine_probability_around =
+                  ((double)(current_map[near_row][near_column] - '0') - seen_mines[near_row][near_column]) /
+                  seen_unknown[near_row][near_column];
+              if (mine_probability_around > pt_mine_probability) {
+                pt_mine_probability = mine_probability_around;
+                std::cerr << "current point:\n"
+                          << r << ' ' << c << '\n'
+                          << "near point:\n"
+                          << near_row << ' ' << near_column << ' ' << mine_probability_around << '\n';
+              }
+            }
+          }
+        }
+        pt.mine_probability = pt_mine_probability;
+        if (no_number_around) {
+          pt.mine_probability = ((double)total_mines - total_seen_mines) / total_unknown;
+        }
         remaining_unknown_points.push_back(pt);
       }
     }
   }
   int remaining_unknown_points_count = remaining_unknown_points.size();
-  int try_this_point = rng() % remaining_unknown_points_count;
-  Execute(remaining_unknown_points[try_this_point].r, remaining_unknown_points[try_this_point].c, 0);
+  if (remaining_unknown_points_count == total_mines - total_seen_mines) {
+    Execute(remaining_unknown_points[0].r, remaining_unknown_points[0].c, 1);
+    return;
+  }
+  std::sort(remaining_unknown_points.begin(), remaining_unknown_points.end(), my_compare);
+  std::cerr << "remaining_unknown_points\n"
+            << "total_mines:" << total_mines << '\n'
+            << "total_seen_mines:" << total_seen_mines << '\n'
+            << "total_unknown:" << total_unknown << '\n';
+  for (int i = 0; i < remaining_unknown_points_count; ++i) {
+    std::cerr << remaining_unknown_points[i].r << ' ' << remaining_unknown_points[i].c << ' '
+              << remaining_unknown_points[i].mine_probability << '\n';
+  }
+  Execute(remaining_unknown_points[0].r, remaining_unknown_points[0].c, 0);
   return;
 }
 
