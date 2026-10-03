@@ -12,10 +12,16 @@ struct point {
   int r;
   int c;
   double mine_probability;
-  int no_number_around;
+  int surrounding_numbers;
 };
 
-bool my_compare(point pt1, point pt2) { return pt1.mine_probability < pt2.mine_probability; }
+bool my_compare(point pt1, point pt2) {
+  if (abs(pt1.mine_probability - pt2.mine_probability) > 1e-6) {
+    return pt1.mine_probability < pt2.mine_probability;
+  } else {
+    return pt1.surrounding_numbers < pt2.surrounding_numbers;
+  }
+}
 
 int possible_delta_r[25] = {0, -1, 0, 1, -1, -1, 1, 1, -1, -2, -2, -1, 1, 2, 2, 1, 0, -2, 0, 2};
 int possible_delta_c[25] = {1, 0, -1, 0, 1, -1, -1, 1, 2, 1, -1, -2, -2, -1, 1, 2, 2, 0, -2, 0};
@@ -450,7 +456,7 @@ void Decide() {
         point pt;
         pt.r = r;
         pt.c = c;
-        pt.no_number_around = 0;
+        pt.surrounding_numbers = 0;
         double pt_mine_probability = 0;
         bool no_number_around = 1;
         for (int near_row = r - 1; near_row <= r + 1; ++near_row) {
@@ -458,6 +464,7 @@ void Decide() {
             if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
                 current_map[near_row][near_column] != '?' && current_map[near_row][near_column] != '@' &&
                 seen_unknown[near_row][near_column]) {
+              pt.surrounding_numbers++;
               no_number_around = 0;
               double mine_probability_around =
                   ((double)(current_map[near_row][near_column] - '0') - seen_mines[near_row][near_column]) /
@@ -474,7 +481,6 @@ void Decide() {
         }
         pt.mine_probability = pt_mine_probability;
         if (no_number_around) {
-          pt.no_number_around = 1;
           pt.mine_probability = ((double)total_mines - total_seen_mines) / total_unknown;
           remaining_unknown_points_no_number_around.push_back(pt);
         }
