@@ -542,6 +542,12 @@ void Decide() {
     std::cerr << remaining_unknown_points[i].r << ' ' << remaining_unknown_points[i].c << ' '
               << remaining_unknown_points[i].mine_probability << '\n';
   }
+  if (remaining_unknown_points[remaining_unknown_points_count - 1].mine_probability >
+      1 - remaining_unknown_points[0].mine_probability) {
+    Execute(remaining_unknown_points[remaining_unknown_points_count - 1].r,
+            remaining_unknown_points[remaining_unknown_points_count - 1].c, 1);
+    return;
+  }
   Execute(remaining_unknown_points[0].r, remaining_unknown_points[0].c, 0);
   return;
 }
