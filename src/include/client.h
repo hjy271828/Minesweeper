@@ -457,7 +457,8 @@ void Decide() {
   //   for (int j = 0; j < remaining_unknown_points_count; ++j) {
   //     for (int i = 0; i < remaining_unknown_points_no_number_around_count; ++i) {
   //       if (remaining_unknown_points[j].r == remaining_unknown_points_no_number_around[i].r &&
-  //           remaining_unknown_points[j].c == remaining_unknown_points_no_number_around[i].c) {
+  //           remaining_unknown_points[j].c == remaining_unknown_points_no_number_around[i].c &&
+  //           remaining_unknown_points_no_number_around_count) {
   //         remaining_unknown_points[j].mine_probability = std::min(
   //             remaining_unknown_points[j].mine_probability,
   //             (double)unknown_mine_in_no_number_around_area_at_most /
