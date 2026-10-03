@@ -129,7 +129,7 @@ void Decide() {
           Execute(r, c, 2);
           return;
         }
-        if (seen_unknown[r][c] + seen_mines[r][c] == (current_map[r][c] - '0' && seen_unknown[r][c] != 0)) {
+        if (seen_unknown[r][c] + seen_mines[r][c] == current_map[r][c] - '0' && seen_unknown[r][c] != 0) {
           for (int near_row = r - 1; near_row <= r + 1; ++near_row) {
             for (int near_column = c - 1; near_column <= c + 1; ++near_column) {
               if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1) {
@@ -144,7 +144,7 @@ void Decide() {
 
         if ((current_map[r][c] - '0') <= seen_mines[r][c]) continue;
         // 用两个格点信息，一起判断
-        for (int i = 0; i < 19; ++i) {
+        for (int i = 0; i <= 19; ++i) {
           int point2_r = possible_delta_r[i] + r;
           int point2_c = possible_delta_c[i] + c;
           if (point2_r >= 0 && point2_r <= rows - 1 && point2_c >= 0 && point2_c <= columns - 1 &&
@@ -203,7 +203,7 @@ void Decide() {
   for (int r = 0; r < rows; ++r) {
     for (int c = 0; c < columns; ++c) {
       if (current_map[r][c] != '@' && current_map[r][c] != '?') {
-        for (int i = 0; i < 19; ++i) {
+        for (int i = 0; i <= 19; ++i) {
           int point2_r = possible_delta_r[i] + r;
           int point2_c = possible_delta_c[i] + c;
           if (point2_r >= 0 && point2_r <= rows - 1 && point2_c >= 0 && point2_c <= columns - 1 &&
@@ -226,7 +226,7 @@ void Decide() {
             least_unknown_mine_in_point2_range =
                 (current_map[r][c] - '0') - seen_mines[r][c] - unknown_not_in_point2_range;
 
-            for (int j = 0; j < 19; ++j) {
+            for (int j = 0; j <= 19; ++j) {
               int point3_r = possible_delta_r[j] + point2_r;
               int point3_c = possible_delta_c[j] + point2_c;
               if (point3_r == r && point3_c == c) {
