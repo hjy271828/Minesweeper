@@ -464,7 +464,7 @@ void Decide() {
     }
   }
 
-  // 找是雷概率最小的不确定点进行尝试
+  // 找合适的不确定点进行尝试
   std::vector<point> remaining_unknown_points;
   std::vector<point> remaining_unknown_points_no_number_around;
   for (int r = 0; r < rows; ++r) {
