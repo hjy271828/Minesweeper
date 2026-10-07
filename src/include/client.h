@@ -185,8 +185,10 @@ void Decide() {
                 }
               }
             }
-            int most_unseen_mine_in_p12_range = std::min(
-                (current_map[point2_r][point2_c] - '0') - seen_mines[point2_r][point2_c], unknown_in_p12_range);
+            int most_unseen_mine_in_p12_range =
+                std::min((current_map[point1_r][point1_c] - '0') - seen_mines[point1_r][point1_c],
+                         std::min((current_map[point2_r][point2_c] - '0') - seen_mines[point2_r][point2_c],
+                                  unknown_in_p12_range));
             if ((current_map[point1_r][point1_c] - '0') - seen_mines[point1_r][point1_c] -
                     most_unseen_mine_in_p12_range >=
                 unknown_in_p1_range_but_not_in_p2_range) {
@@ -218,6 +220,7 @@ void Decide() {
           if (point2_r >= 0 && point2_r <= rows - 1 && point2_c >= 0 && point2_c <= columns - 1 &&
               current_map[point2_r][point2_c] >= '0' && current_map[point2_r][point2_c] <= '9') {
             int unknown_in_p1_range_but_not_in_p2_range = 0;
+            int unknown_not_in_p1_range_but_in_p2_range = 0;
             int unknown_in_p12_range = 0;
             int least_unseen_mine_in_p12_range = 0;
             for (int near_row = point1_r - 1; near_row <= point1_r + 1; ++near_row) {
@@ -228,6 +231,16 @@ void Decide() {
                     unknown_in_p1_range_but_not_in_p2_range++;
                   } else {
                     unknown_in_p12_range++;
+                  }
+                }
+              }
+            }
+            for (int near_row = point2_r - 1; near_row <= point2_r + 1; ++near_row) {
+              for (int near_column = point2_c - 1; near_column <= point2_c + 1; ++near_column) {
+                if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
+                    current_map[near_row][near_column] == '?') {
+                  if (abs(point1_r - near_row) > 1 || abs(point1_c - near_column) > 1) {
+                    unknown_not_in_p1_range_but_in_p2_range++;
                   }
                 }
               }
@@ -243,9 +256,10 @@ void Decide() {
               }
               if (point3_r >= 0 && point3_r <= rows - 1 && point3_c >= 0 && point3_c <= columns - 1 &&
                   current_map[point3_r][point3_c] >= '0' && current_map[point3_r][point3_c] <= '9') {
-                int most_unseen_mine_not_in_p1_range_but_in_p2_range = (current_map[point2_r][point2_c] - '0') -
-                                                                       seen_mines[point2_r][point2_c] -
-                                                                       least_unseen_mine_in_p12_range;
+                int most_unseen_mine_not_in_p1_range_but_in_p2_range =
+                    std::min((current_map[point2_r][point2_c] - '0') - seen_mines[point2_r][point2_c] -
+                                 least_unseen_mine_in_p12_range,
+                             unknown_not_in_p1_range_but_in_p2_range);
                 int least_unseen_mine_not_in_p1_range_but_in_p23_range = 0;
                 int unknown_in_p3_range_st_in_p1_range_or_not_in_p2_range = 0;
                 int unknown_not_in_p1_range_but_in_p23_range = 0;
@@ -310,8 +324,10 @@ void Decide() {
                 int most_unseen_mine_not_in_p1_range_but_in_p23_range =
                     std::min(unknown_not_in_p1_range_but_in_p23_range,
                              (current_map[point3_r][point3_c] - '0') - seen_mines[point3_r][point3_c]);
-                int most_unseen_mine_in_p12_range = std::min(
-                    (current_map[point1_r][point1_c] - '0') - seen_mines[point1_r][point1_c], unknown_in_p12_range);
+                int most_unseen_mine_in_p12_range =
+                    std::min((current_map[point1_r][point1_c] - '0') - seen_mines[point1_r][point1_c],
+                             std::min((current_map[point2_r][point2_c] - '0') - seen_mines[point2_r][point2_c],
+                                      unknown_in_p12_range));
                 int least_unseen_mine_in_p2_range_but_not_in_p1_range_and_not_in_p3_range =
                     (current_map[point2_r][point2_c] - '0') - seen_mines[point2_r][point2_c] -
                     (most_unseen_mine_in_p12_range + most_unseen_mine_not_in_p1_range_but_in_p23_range);
