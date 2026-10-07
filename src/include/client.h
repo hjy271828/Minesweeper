@@ -122,16 +122,19 @@ void ReadMap() {
  * mind and make your decision here! Caution: you can only execute once in this function.
  */
 void Decide() {
-  for (int r = 0; r < rows; ++r) {
-    for (int c = 0; c < columns; ++c) {
-      if (current_map[r][c] != '@' && current_map[r][c] != '?') {
-        if (seen_mines[r][c] == (current_map[r][c] - '0') && seen_unknown[r][c] != 0) {
-          Execute(r, c, 2);
+  for (int point1_r = 0; point1_r < rows; ++point1_r) {
+    for (int point1_c = 0; point1_c < columns; ++point1_c) {
+      if (current_map[point1_r][point1_c] != '@' && current_map[point1_r][point1_c] != '?') {
+        if (seen_mines[point1_r][point1_c] == (current_map[point1_r][point1_c] - '0') &&
+            seen_unknown[point1_r][point1_c] != 0) {
+          Execute(point1_r, point1_c, 2);
           return;
         }
-        if (seen_unknown[r][c] + seen_mines[r][c] == current_map[r][c] - '0' && seen_unknown[r][c] != 0) {
-          for (int near_row = r - 1; near_row <= r + 1; ++near_row) {
-            for (int near_column = c - 1; near_column <= c + 1; ++near_column) {
+        if (seen_unknown[point1_r][point1_c] + seen_mines[point1_r][point1_c] ==
+                current_map[point1_r][point1_c] - '0' &&
+            seen_unknown[point1_r][point1_c] != 0) {
+          for (int near_row = point1_r - 1; near_row <= point1_r + 1; ++near_row) {
+            for (int near_column = point1_c - 1; near_column <= point1_c + 1; ++near_column) {
               if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1) {
                 if (current_map[near_row][near_column] == '?') {
                   Execute(near_row, near_column, 1);
@@ -142,36 +145,39 @@ void Decide() {
           }
         }
 
-        if ((current_map[r][c] - '0') <= seen_mines[r][c]) continue;
+        if ((current_map[point1_r][point1_c] - '0') <= seen_mines[point1_r][point1_c]) continue;
         // 用两个格点信息，一起判断
         for (int i = 0; i <= 19; ++i) {
-          int point2_r = possible_delta_r[i] + r;
-          int point2_c = possible_delta_c[i] + c;
+          int point2_r = possible_delta_r[i] + point1_r;
+          int point2_c = possible_delta_c[i] + point1_c;
           if (point2_r >= 0 && point2_r <= rows - 1 && point2_c >= 0 && point2_c <= columns - 1 &&
               current_map[point2_r][point2_c] >= '0' && current_map[point2_r][point2_c] <= '9' &&
               (current_map[point2_r][point2_c] - '0') > seen_mines[point2_r][point2_c]) {
-            int unknown_not_in_point2_range = 0;
-            int least_unknown_mine_in_point2_range = 0;
-            for (int near_row = r - 1; near_row <= r + 1; ++near_row) {
-              for (int near_column = c - 1; near_column <= c + 1; ++near_column) {
+            int unknown_in_p1_range_but_not_in_p2_range = 0;
+            int unknown_in_p12_range = 0;
+            int least_unseen_mine_in_p12_range = 0;
+            for (int near_row = point1_r - 1; near_row <= point1_r + 1; ++near_row) {
+              for (int near_column = point1_c - 1; near_column <= point1_c + 1; ++near_column) {
                 if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
                     current_map[near_row][near_column] == '?') {
                   if (abs(point2_r - near_row) > 1 || abs(point2_c - near_column) > 1) {
-                    unknown_not_in_point2_range++;
+                    unknown_in_p1_range_but_not_in_p2_range++;
+                  } else {
+                    unknown_in_p12_range++;
                   }
                 }
               }
             }
 
-            least_unknown_mine_in_point2_range =
-                (current_map[r][c] - '0') - seen_mines[r][c] - unknown_not_in_point2_range;
+            least_unseen_mine_in_p12_range = (current_map[point1_r][point1_c] - '0') - seen_mines[point1_r][point1_c] -
+                                             unknown_in_p1_range_but_not_in_p2_range;
             if (current_map[point2_r][point2_c] - '0' ==
-                least_unknown_mine_in_point2_range + seen_mines[point2_r][point2_c]) {
+                least_unseen_mine_in_p12_range + seen_mines[point2_r][point2_c]) {
               for (int near_row = point2_r - 1; near_row <= point2_r + 1; ++near_row) {
                 for (int near_column = point2_c - 1; near_column <= point2_c + 1; ++near_column) {
                   if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
                       current_map[near_row][near_column] == '?') {
-                    if (abs(r - near_row) > 1 || abs(c - near_column) > 1) {
+                    if (abs(point1_r - near_row) > 1 || abs(point1_c - near_column) > 1) {
                       Execute(near_row, near_column, 0);
                       return;
                     }
@@ -179,10 +185,13 @@ void Decide() {
                 }
               }
             }
-            int shared_mine_at_most = (current_map[point2_r][point2_c] - '0') - seen_mines[point2_r][point2_c];
-            if ((current_map[r][c] - '0') - seen_mines[r][c] - shared_mine_at_most >= unknown_not_in_point2_range) {
-              for (int near_row = r - 1; near_row <= r + 1; ++near_row) {
-                for (int near_column = c - 1; near_column <= c + 1; ++near_column) {
+            int most_unseen_mine_in_p12_range = std::min(
+                (current_map[point2_r][point2_c] - '0') - seen_mines[point2_r][point2_c], unknown_in_p12_range);
+            if ((current_map[point1_r][point1_c] - '0') - seen_mines[point1_r][point1_c] -
+                    most_unseen_mine_in_p12_range >=
+                unknown_in_p1_range_but_not_in_p2_range) {
+              for (int near_row = point1_r - 1; near_row <= point1_r + 1; ++near_row) {
+                for (int near_column = point1_c - 1; near_column <= point1_c + 1; ++near_column) {
                   if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
                       current_map[near_row][near_column] == '?') {
                     if (abs(point2_r - near_row) > 1 || abs(point2_c - near_column) > 1) {
@@ -200,68 +209,70 @@ void Decide() {
   }
 
   // 用三个格点信息，一起判断
-  for (int r = 0; r < rows; ++r) {
-    for (int c = 0; c < columns; ++c) {
-      if (current_map[r][c] != '@' && current_map[r][c] != '?') {
+  for (int point1_r = 0; point1_r < rows; ++point1_r) {
+    for (int point1_c = 0; point1_c < columns; ++point1_c) {
+      if (current_map[point1_r][point1_c] != '@' && current_map[point1_r][point1_c] != '?') {
         for (int i = 0; i <= 19; ++i) {
-          int point2_r = possible_delta_r[i] + r;
-          int point2_c = possible_delta_c[i] + c;
+          int point2_r = possible_delta_r[i] + point1_r;
+          int point2_c = possible_delta_c[i] + point1_c;
           if (point2_r >= 0 && point2_r <= rows - 1 && point2_c >= 0 && point2_c <= columns - 1 &&
               current_map[point2_r][point2_c] >= '0' && current_map[point2_r][point2_c] <= '9') {
-            int unknown_not_in_point2_range = 0;
-            int unknown_in_point2_range = 0;
-            int least_unknown_mine_in_point2_range = 0;
-            for (int near_row = r - 1; near_row <= r + 1; ++near_row) {
-              for (int near_column = c - 1; near_column <= c + 1; ++near_column) {
+            int unknown_in_p1_range_but_not_in_p2_range = 0;
+            int unknown_in_p12_range = 0;
+            int least_unseen_mine_in_p12_range = 0;
+            for (int near_row = point1_r - 1; near_row <= point1_r + 1; ++near_row) {
+              for (int near_column = point1_c - 1; near_column <= point1_c + 1; ++near_column) {
                 if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
                     current_map[near_row][near_column] == '?') {
                   if (abs(point2_r - near_row) > 1 || abs(point2_c - near_column) > 1) {
-                    unknown_not_in_point2_range++;
+                    unknown_in_p1_range_but_not_in_p2_range++;
                   } else {
-                    unknown_in_point2_range++;
+                    unknown_in_p12_range++;
                   }
                 }
               }
             }
-            least_unknown_mine_in_point2_range =
-                (current_map[r][c] - '0') - seen_mines[r][c] - unknown_not_in_point2_range;
+            least_unseen_mine_in_p12_range = (current_map[point1_r][point1_c] - '0') - seen_mines[point1_r][point1_c] -
+                                             unknown_in_p1_range_but_not_in_p2_range;
 
             for (int j = 0; j <= 19; ++j) {
               int point3_r = possible_delta_r[j] + point2_r;
               int point3_c = possible_delta_c[j] + point2_c;
-              if (point3_r == r && point3_c == c) {
+              if (point3_r == point1_r && point3_c == point1_c) {
                 continue;
               }
               if (point3_r >= 0 && point3_r <= rows - 1 && point3_c >= 0 && point3_c <= columns - 1 &&
                   current_map[point3_r][point3_c] >= '0' && current_map[point3_r][point3_c] <= '9') {
-                int unknown_point2_mine_not_in_point1_range_at_most = (current_map[point2_r][point2_c] - '0') -
-                                                                      seen_mines[point2_r][point2_c] -
-                                                                      least_unknown_mine_in_point2_range;
-                int unknown_point2_mine_not_in_point1_range_but_in_point3_range_at_least = 0;
-                int unknown_point3_in_point1_range_or_not_in_point2_range = 0;
-                int unknown_point3_not_in_point1_range_but_in_point2_range = 0;
-                int unknown_point3_not_in_point2_range = 0;
-                int unknown_shared_by_point123 = 0;
-                int unknown_shared_by_point23 = 0;
-                int unknown_point2_not_in_point1_range_and_not_in_point3_range = 0;
+                int most_unseen_mine_not_in_p1_range_but_in_p2_range = (current_map[point2_r][point2_c] - '0') -
+                                                                       seen_mines[point2_r][point2_c] -
+                                                                       least_unseen_mine_in_p12_range;
+                int least_unseen_mine_not_in_p1_range_but_in_p23_range = 0;
+                int unknown_in_p3_range_st_in_p1_range_or_not_in_p2_range = 0;
+                int unknown_not_in_p1_range_but_in_p23_range = 0;
+                int unknown_not_in_p2_range_but_in_p3_range = 0;
+                int unknown_in_p123_range = 0;
+                int unknown_in_p23_range = 0;
+                int unknown_in_p2_range_but_not_in_p1_range_and_not_in_p3_range = 0;
                 for (int near_row = point3_r - 1; near_row <= point3_r + 1; ++near_row) {
                   for (int near_column = point3_c - 1; near_column <= point3_c + 1; ++near_column) {
                     if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
                         current_map[near_row][near_column] == '?') {
                       if (abs(point2_r - near_row) <= 1 && abs(point2_c - near_column) <= 1) {
-                        unknown_shared_by_point23++;
-                        if (abs(r - near_row) <= 1 && abs(c - near_column) <= 1) {
-                          unknown_shared_by_point123++;
+                        unknown_in_p23_range++;
+                        if (abs(point1_r - near_row) <= 1 && abs(point1_c - near_column) <= 1) {
+                          unknown_in_p123_range++;
                         }
                       }
+                      if (abs(point2_r - near_row) > 1 || abs(point2_c - near_column) > 1) {
+                        unknown_not_in_p2_range_but_in_p3_range++;
+                      }
                       if ((abs(point2_r - near_row) > 1 || abs(point2_c - near_column) > 1) ||
-                          abs(r - near_row) <= 1 && abs(c - near_column) <= 1) {
-                        if (abs(point2_r - near_row) > 1 || abs(point2_c - near_column) > 1) {
-                          unknown_point3_not_in_point2_range++;
-                        }
-                        unknown_point3_in_point1_range_or_not_in_point2_range++;
-                      } else {
-                        unknown_point3_not_in_point1_range_but_in_point2_range++;
+                          abs(point1_r - near_row) <= 1 && abs(point1_c - near_column) <= 1) {
+                        unknown_in_p3_range_st_in_p1_range_or_not_in_p2_range++;
+                      }
+                      if ((abs(point1_r - near_row) > 1 || abs(point1_c - near_column) > 1) &&
+                          abs(point2_r - near_row) <= 1 && abs(point2_c - near_column) <= 1) {
+                        unknown_not_in_p1_range_but_in_p23_range++;
                       }
                     }
                   }
@@ -271,22 +282,22 @@ void Decide() {
                     if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
                         current_map[near_row][near_column] == '?') {
                       if ((abs(point3_r - near_row) > 1 || abs(point3_c - near_column) > 1) &&
-                          (abs(r - near_row) > 1 || abs(c - near_column) > 1)) {
-                        unknown_point2_not_in_point1_range_and_not_in_point3_range++;
+                          (abs(point1_r - near_row) > 1 || abs(point1_c - near_column) > 1)) {
+                        unknown_in_p2_range_but_not_in_p1_range_and_not_in_p3_range++;
                       }
                     }
                   }
                 }
-                unknown_point2_mine_not_in_point1_range_but_in_point3_range_at_least =
+                least_unseen_mine_not_in_p1_range_but_in_p23_range =
                     (current_map[point3_r][point3_c] - '0') - seen_mines[point3_r][point3_c] -
-                    unknown_point3_in_point1_range_or_not_in_point2_range;
-                if (unknown_point2_mine_not_in_point1_range_but_in_point3_range_at_least >=
-                    unknown_point2_mine_not_in_point1_range_at_most) {
+                    unknown_in_p3_range_st_in_p1_range_or_not_in_p2_range;
+                if (least_unseen_mine_not_in_p1_range_but_in_p23_range >=
+                    most_unseen_mine_not_in_p1_range_but_in_p2_range) {
                   for (int near_row = point2_r - 1; near_row <= point2_r + 1; ++near_row) {
                     for (int near_column = point2_c - 1; near_column <= point2_c + 1; ++near_column) {
                       if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
                           current_map[near_row][near_column] == '?') {
-                        if ((abs(r - near_row) > 1 || abs(c - near_column) > 1) &&
+                        if ((abs(point1_r - near_row) > 1 || abs(point1_c - near_column) > 1) &&
                             (abs(point3_r - near_row) > 1 || abs(point3_c - near_column) > 1)) {
                           Execute(near_row, near_column, 0);
                           return;
@@ -296,26 +307,25 @@ void Decide() {
                   }
                 }
 
-                int unknown_point3_mine_not_in_point1_range_but_in_point2_range_at_most =
-                    std::min(unknown_point3_not_in_point1_range_but_in_point2_range,
+                int most_unseen_mine_not_in_p1_range_but_in_p23_range =
+                    std::min(unknown_not_in_p1_range_but_in_p23_range,
                              (current_map[point3_r][point3_c] - '0') - seen_mines[point3_r][point3_c]);
-                int point12_shared_unseen_mine_at_most =
-                    std::min((current_map[r][c] - '0') - seen_mines[r][c], unknown_in_point2_range);
-                int unseen_point2_mine_not_in_point1_range_and_not_in_point3_range_at_least =
+                int most_unseen_mine_in_p12_range = std::min(
+                    (current_map[point1_r][point1_c] - '0') - seen_mines[point1_r][point1_c], unknown_in_p12_range);
+                int least_unseen_mine_in_p2_range_but_not_in_p1_range_and_not_in_p3_range =
                     (current_map[point2_r][point2_c] - '0') - seen_mines[point2_r][point2_c] -
-                    (point12_shared_unseen_mine_at_most +
-                     unknown_point3_mine_not_in_point1_range_but_in_point2_range_at_most);
-                if (unseen_point2_mine_not_in_point1_range_and_not_in_point3_range_at_least ==
-                        unknown_point2_not_in_point1_range_and_not_in_point3_range &&
-                    unknown_point2_not_in_point1_range_and_not_in_point3_range != 0) {
+                    (most_unseen_mine_in_p12_range + most_unseen_mine_not_in_p1_range_but_in_p23_range);
+                if (least_unseen_mine_in_p2_range_but_not_in_p1_range_and_not_in_p3_range ==
+                        unknown_in_p2_range_but_not_in_p1_range_and_not_in_p3_range &&
+                    unknown_in_p2_range_but_not_in_p1_range_and_not_in_p3_range != 0) {
                   for (int near_row = point2_r - 1; near_row <= point2_r + 1; ++near_row) {
                     for (int near_column = point2_c - 1; near_column <= point2_c + 1; ++near_column) {
                       if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
                           current_map[near_row][near_column] == '?') {
-                        if ((abs(r - near_row) > 1 || abs(c - near_column) > 1) &&
+                        if ((abs(point1_r - near_row) > 1 || abs(point1_c - near_column) > 1) &&
                             (abs(point3_r - near_row) > 1 || abs(point3_c - near_column) > 1)) {
                           std::cerr << "new logic:" << '\n' << near_row << ' ' << near_column << '\n';
-                          std::cerr << "point1:" << '\n' << r << ' ' << c << '\n';
+                          std::cerr << "point1:" << '\n' << point1_r << ' ' << point1_c << '\n';
                           std::cerr << "point2:" << '\n' << point2_r << ' ' << point2_c << '\n';
                           std::cerr << "point3:" << '\n' << point3_r << ' ' << point3_c << '\n';
                           Execute(near_row, near_column, 1);
@@ -326,12 +336,12 @@ void Decide() {
                   }
                 }
 
-                int unknown_point2_mine_in_point3_range_at_least =
+                int least_unseen_mine_in_p23_range =
                     (current_map[point2_r][point2_c] - '0') - seen_mines[point2_r][point2_c] -
-                    unknown_point2_not_in_point1_range_and_not_in_point3_range - point12_shared_unseen_mine_at_most;
+                    unknown_in_p2_range_but_not_in_p1_range_and_not_in_p3_range - most_unseen_mine_in_p12_range;
                 if (current_map[point3_r][point3_c] - '0' - seen_mines[point3_r][point3_c] <=
-                        unknown_point2_mine_in_point3_range_at_least &&
-                    unknown_point3_not_in_point2_range) {
+                        least_unseen_mine_in_p23_range &&
+                    unknown_not_in_p2_range_but_in_p3_range) {
                   for (int near_row = point3_r - 1; near_row <= point3_r + 1; ++near_row) {
                     for (int near_column = point3_c - 1; near_column <= point3_c + 1; ++near_column) {
                       if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
@@ -345,15 +355,14 @@ void Decide() {
                   }
                 }
 
-                int point123_shared_unseen_mine_at_most =
-                    std::min(unknown_shared_by_point123, point12_shared_unseen_mine_at_most);
-                int point23_shared_unseen_mine_at_most = std::min(
-                    unknown_shared_by_point23, unknown_point3_mine_not_in_point1_range_but_in_point2_range_at_most +
-                                                   point123_shared_unseen_mine_at_most);
+                int most_unseen_mine_in_p123_range = std::min(unknown_in_p123_range, most_unseen_mine_in_p12_range);
+                int most_unseen_mine_in_p23_range =
+                    std::min(unknown_in_p23_range,
+                             most_unseen_mine_not_in_p1_range_but_in_p23_range + most_unseen_mine_in_p123_range);
                 if (current_map[point3_r][point3_c] - '0' - seen_mines[point3_r][point3_c] -
-                            point23_shared_unseen_mine_at_most >=
-                        unknown_point3_not_in_point2_range &&
-                    unknown_point3_not_in_point2_range) {
+                            most_unseen_mine_in_p23_range >=
+                        unknown_not_in_p2_range_but_in_p3_range &&
+                    unknown_not_in_p2_range_but_in_p3_range) {
                   for (int near_row = point3_r - 1; near_row <= point3_r + 1; ++near_row) {
                     for (int near_column = point3_c - 1; near_column <= point3_c + 1; ++near_column) {
                       if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
@@ -373,8 +382,8 @@ void Decide() {
                   int point4_c = possible_delta_c[k] + point3_c;
                   if (point4_r >= 0 && point4_r <= rows - 1 && point4_c >= 0 && point4_c <= columns - 1 &&
                       current_map[point4_r][point4_c] >= '0' && current_map[point4_r][point4_c] <= '9') {
-                    int unknown_point4_not_in_point3_range_or_in_point23_range = 0;
-                    int unknown_point4_in_point3_range_but_not_in_point2_range = 0;
+                    int unknown_in_p4_range_st_not_in_p3_range_or_in_p23_range = 0;
+                    int unknown_in_p34_range_but_not_in_p2_range = 0;
                     for (int near_row = point4_r - 1; near_row <= point4_r + 1; ++near_row) {
                       for (int near_column = point4_c - 1; near_column <= point4_c + 1; ++near_column) {
                         if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
@@ -382,53 +391,51 @@ void Decide() {
                           if ((abs(point3_r - near_row) > 1 || abs(point3_c - near_column) > 1) ||
                               ((abs(point3_r - near_row) <= 1 && abs(point3_c - near_column) <= 1) &&
                                (abs(point2_r - near_row) <= 1 && abs(point2_c - near_column) <= 1))) {
-                            unknown_point4_not_in_point3_range_or_in_point23_range++;
+                            unknown_in_p4_range_st_not_in_p3_range_or_in_p23_range++;
                           }
                           if ((abs(point3_r - near_row) <= 1 && abs(point3_c - near_column) <= 1) &&
                               (abs(point2_r - near_row) > 1 || abs(point2_c - near_column) > 1)) {
-                            unknown_point4_in_point3_range_but_not_in_point2_range++;
+                            unknown_in_p34_range_but_not_in_p2_range++;
                           }
                         }
                       }
                     }
-                    int unknown_point4_mine_in_point3_range_but_not_in_point2_range_at_least =
+                    int least_unseen_mine_in_p34_range_but_not_in_p2_range =
                         (current_map[point4_r][point4_c] - '0') - seen_mines[point4_r][point4_c] -
-                        unknown_point4_not_in_point3_range_or_in_point23_range;
-                    int unknown_point3_not_in_point2_range_and_not_in_point4_range = 0;
-                    int saved_r_unknown_point3_not_in_point2_range_and_not_in_point4_range = 0;
-                    int saved_c_unknown_point3_not_in_point2_range_and_not_in_point4_range = 0;
+                        unknown_in_p4_range_st_not_in_p3_range_or_in_p23_range;
+                    int unknown_in_p3_range_but_not_in_p2_range_and_not_in_p4_range = 0;
+                    int saved_r_unknown_in_p3_range_but_not_in_p2_range_and_not_in_p4_range = 0;
+                    int saved_c_unknown_in_p3_range_but_not_in_p2_range_and_not_in_p4_range = 0;
                     for (int near_row = point3_r - 1; near_row <= point3_r + 1; ++near_row) {
                       for (int near_column = point3_c - 1; near_column <= point3_c + 1; ++near_column) {
                         if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
                             current_map[near_row][near_column] == '?') {
                           if ((abs(point2_r - near_row) > 1 || abs(point2_c - near_column) > 1) &&
                               (abs(point4_r - near_row) > 1 || abs(point4_c - near_column) > 1)) {
-                            unknown_point3_not_in_point2_range_and_not_in_point4_range++;
-                            saved_r_unknown_point3_not_in_point2_range_and_not_in_point4_range = near_row;
-                            saved_c_unknown_point3_not_in_point2_range_and_not_in_point4_range = near_column;
+                            unknown_in_p3_range_but_not_in_p2_range_and_not_in_p4_range++;
+                            saved_r_unknown_in_p3_range_but_not_in_p2_range_and_not_in_p4_range = near_row;
+                            saved_c_unknown_in_p3_range_but_not_in_p2_range_and_not_in_p4_range = near_column;
                           }
                         }
                       }
                     }
-                    if (unknown_point3_not_in_point2_range_and_not_in_point4_range &&
-                        unknown_point2_mine_in_point3_range_at_least +
-                                unknown_point4_mine_in_point3_range_but_not_in_point2_range_at_least >=
+                    if (unknown_in_p3_range_but_not_in_p2_range_and_not_in_p4_range &&
+                        least_unseen_mine_in_p23_range + least_unseen_mine_in_p34_range_but_not_in_p2_range >=
                             (current_map[point3_r][point3_c] - '0') - seen_mines[point3_r][point3_c]) {
-                      Execute(saved_r_unknown_point3_not_in_point2_range_and_not_in_point4_range,
-                              saved_c_unknown_point3_not_in_point2_range_and_not_in_point4_range, 0);
+                      Execute(saved_r_unknown_in_p3_range_but_not_in_p2_range_and_not_in_p4_range,
+                              saved_c_unknown_in_p3_range_but_not_in_p2_range_and_not_in_p4_range, 0);
                       return;
                     }
 
-                    int unknown_point4_mine_in_point3_range_but_not_in_point2_range_at_most =
-                        std::min(unknown_point4_in_point3_range_but_not_in_point2_range,
+                    int most_unseen_mine_in_p34_range_but_not_in_p2_range =
+                        std::min(unknown_in_p34_range_but_not_in_p2_range,
                                  (current_map[point4_r][point4_c] - '0') - seen_mines[point4_r][point4_c]);
-                    if (unknown_point3_not_in_point2_range_and_not_in_point4_range &&
+                    if (unknown_in_p3_range_but_not_in_p2_range_and_not_in_p4_range &&
                         (current_map[point3_r][point3_c] - '0') - seen_mines[point3_r][point3_c] >=
-                            unknown_point3_not_in_point2_range_and_not_in_point4_range +
-                                unknown_point4_mine_in_point3_range_but_not_in_point2_range_at_most +
-                                point23_shared_unseen_mine_at_most) {
-                      Execute(saved_r_unknown_point3_not_in_point2_range_and_not_in_point4_range,
-                              saved_c_unknown_point3_not_in_point2_range_and_not_in_point4_range, 1);
+                            unknown_in_p3_range_but_not_in_p2_range_and_not_in_p4_range +
+                                most_unseen_mine_in_p34_range_but_not_in_p2_range + most_unseen_mine_in_p23_range) {
+                      Execute(saved_r_unknown_in_p3_range_but_not_in_p2_range_and_not_in_p4_range,
+                              saved_c_unknown_in_p3_range_but_not_in_p2_range_and_not_in_p4_range, 1);
                       return;
                     }
                   }
@@ -483,7 +490,7 @@ void Decide() {
     }
   }
 
-  int unknown_mine_in_no_number_around_area_at_most = total_mines - total_seen_mines;
+  int most_unseen_mine_in_no_number_around_area = total_mines - total_seen_mines;
   for (int start_r = 0; start_r <= 2; ++start_r) {
     for (int start_c = 0; start_c <= 2; ++start_c) {
       int count_unseen_mine_in_no_number_around_area = total_mines - total_seen_mines;
@@ -495,8 +502,8 @@ void Decide() {
           }
         }
       }
-      if (unknown_mine_in_no_number_around_area_at_most > count_unseen_mine_in_no_number_around_area) {
-        unknown_mine_in_no_number_around_area_at_most = count_unseen_mine_in_no_number_around_area;
+      if (most_unseen_mine_in_no_number_around_area > count_unseen_mine_in_no_number_around_area) {
+        most_unseen_mine_in_no_number_around_area = count_unseen_mine_in_no_number_around_area;
         // std::cerr << "current start_r:" << start_r << " current_start_c:" << start_c << '\n';
       }
     }
@@ -505,13 +512,12 @@ void Decide() {
   int remaining_unknown_points_no_number_around_count = remaining_unknown_points_no_number_around.size();
   int remaining_unknown_points_count = remaining_unknown_points.size();
 
-  if (unknown_mine_in_no_number_around_area_at_most == 0 && remaining_unknown_points_no_number_around_count) {
+  if (most_unseen_mine_in_no_number_around_area == 0 && remaining_unknown_points_no_number_around_count) {
     std::cerr << "remaining_unknown_points\n"
               << "total_mines:" << total_mines << '\n'
               << "total_seen_mines:" << total_seen_mines << '\n'
               << "total_unknown:" << total_unknown << '\n'
-              << "unknown_mine_in_no_number_around_area_at_most:" << unknown_mine_in_no_number_around_area_at_most
-              << '\n'
+              << "most_unseen_mine_in_no_number_around_area:" << most_unseen_mine_in_no_number_around_area << '\n'
               << "remaining_unknown_points_no_number_around_count:" << remaining_unknown_points_no_number_around_count
               << '\n';
     Execute(remaining_unknown_points_no_number_around[0].r, remaining_unknown_points_no_number_around[0].c, 0);
@@ -528,7 +534,7 @@ void Decide() {
   //           remaining_unknown_points_no_number_around_count) {
   //         remaining_unknown_points[j].mine_probability = std::min(
   //             remaining_unknown_points[j].mine_probability,
-  //             (double)unknown_mine_in_no_number_around_area_at_most /
+  //             (double)most_unseen_mine_in_no_number_around_area /
   //             remaining_unknown_points_no_number_around_count);
   //       }
   //     }
