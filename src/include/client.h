@@ -400,6 +400,11 @@ void Decide() {
                       current_map[point4_r][point4_c] >= '0' && current_map[point4_r][point4_c] <= '9') {
                     int unknown_in_p4_range_st_not_in_p3_range_or_in_p23_range = 0;
                     int unknown_in_p34_range_but_not_in_p2_range = 0;
+                    int unknown_in_p234_range = 0;
+                    int unknown_in_p4_range_but_not_in_p3_range = 0;
+                    int saved_r_unknown_in_p4_range_but_not_in_p3_range = 0;
+                    int saved_c_unknown_in_p4_range_but_not_in_p3_range = 0;
+
                     for (int near_row = point4_r - 1; near_row <= point4_r + 1; ++near_row) {
                       for (int near_column = point4_c - 1; near_column <= point4_c + 1; ++near_column) {
                         if (near_row >= 0 && near_row <= rows - 1 && near_column >= 0 && near_column <= columns - 1 &&
@@ -412,6 +417,15 @@ void Decide() {
                           if ((abs(point3_r - near_row) <= 1 && abs(point3_c - near_column) <= 1) &&
                               (abs(point2_r - near_row) > 1 || abs(point2_c - near_column) > 1)) {
                             unknown_in_p34_range_but_not_in_p2_range++;
+                          }
+                          if ((abs(point3_r - near_row) <= 1 && abs(point3_c - near_column) <= 1) &&
+                              (abs(point2_r - near_row) <= 1 && abs(point2_c - near_column) <= 1)) {
+                            unknown_in_p234_range++;
+                          }
+                          if (abs(point3_r - near_row) > 1 || abs(point3_c - near_column) > 1) {
+                            unknown_in_p4_range_but_not_in_p3_range++;
+                            saved_r_unknown_in_p4_range_but_not_in_p3_range = near_row;
+                            saved_c_unknown_in_p4_range_but_not_in_p3_range = near_column;
                           }
                         }
                       }
@@ -452,6 +466,16 @@ void Decide() {
                                 most_unseen_mine_in_p34_range_but_not_in_p2_range + most_unseen_mine_in_p23_range) {
                       Execute(saved_r_unknown_in_p3_range_but_not_in_p2_range_and_not_in_p4_range,
                               saved_c_unknown_in_p3_range_but_not_in_p2_range_and_not_in_p4_range, 1);
+                      return;
+                    }
+
+                    int most_unseen_mine_in_p234_range = std::min(unknown_in_p234_range, most_unseen_mine_in_p23_range);
+                    if (unknown_in_p4_range_but_not_in_p3_range &&
+                        ((current_map[point4_r][point4_c] - '0') - seen_mines[point4_r][point4_c] >=
+                         most_unseen_mine_in_p234_range + most_unseen_mine_in_p34_range_but_not_in_p2_range +
+                             unknown_in_p4_range_but_not_in_p3_range)) {
+                      Execute(saved_r_unknown_in_p4_range_but_not_in_p3_range,
+                              saved_c_unknown_in_p4_range_but_not_in_p3_range, 1);
                       return;
                     }
                   }
