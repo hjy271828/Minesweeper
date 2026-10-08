@@ -1,7 +1,2 @@
 solutions/
-cmake_install.cmake
-CMakeCache.txt
-Makefile
-CMakeFiles/
-src/client
-src/server
+build/
