@@ -340,10 +340,10 @@ void Decide() {
                           current_map[near_row][near_column] == '?') {
                         if ((abs(point1_r - near_row) > 1 || abs(point1_c - near_column) > 1) &&
                             (abs(point3_r - near_row) > 1 || abs(point3_c - near_column) > 1)) {
-                          std::cerr << "new logic:" << '\n' << near_row << ' ' << near_column << '\n';
-                          std::cerr << "point1:" << '\n' << point1_r << ' ' << point1_c << '\n';
-                          std::cerr << "point2:" << '\n' << point2_r << ' ' << point2_c << '\n';
-                          std::cerr << "point3:" << '\n' << point3_r << ' ' << point3_c << '\n';
+                          //   std::cerr << "new logic:" << '\n' << near_row << ' ' << near_column << '\n';
+                          //   std::cerr << "point1:" << '\n' << point1_r << ' ' << point1_c << '\n';
+                          //   std::cerr << "point2:" << '\n' << point2_r << ' ' << point2_c << '\n';
+                          //   std::cerr << "point3:" << '\n' << point3_r << ' ' << point3_c << '\n';
                           Execute(near_row, near_column, 1);
                           return;
                         }
@@ -553,13 +553,14 @@ void Decide() {
   int remaining_unknown_points_count = remaining_unknown_points.size();
 
   if (most_unseen_mine_in_no_number_around_area == 0 && remaining_unknown_points_no_number_around_count) {
-    std::cerr << "remaining_unknown_points\n"
-              << "total_mines:" << total_mines << '\n'
-              << "total_seen_mines:" << total_seen_mines << '\n'
-              << "total_unknown:" << total_unknown << '\n'
-              << "most_unseen_mine_in_no_number_around_area:" << most_unseen_mine_in_no_number_around_area << '\n'
-              << "remaining_unknown_points_no_number_around_count:" << remaining_unknown_points_no_number_around_count
-              << '\n';
+    // std::cerr << "remaining_unknown_points\n"
+    //           << "total_mines:" << total_mines << '\n'
+    //           << "total_seen_mines:" << total_seen_mines << '\n'
+    //           << "total_unknown:" << total_unknown << '\n'
+    //           << "most_unseen_mine_in_no_number_around_area:" << most_unseen_mine_in_no_number_around_area << '\n'
+    //           << "remaining_unknown_points_no_number_around_count:" <<
+    //           remaining_unknown_points_no_number_around_count
+    //           << '\n';
     Execute(remaining_unknown_points_no_number_around[0].r, remaining_unknown_points_no_number_around[0].c, 0);
     return;
   }
@@ -580,14 +581,14 @@ void Decide() {
   //     }
   //   }
   std::sort(remaining_unknown_points.begin(), remaining_unknown_points.end(), my_compare);
-  std::cerr << "remaining_unknown_points\n"
-            << "total_mines:" << total_mines << '\n'
-            << "total_seen_mines:" << total_seen_mines << '\n'
-            << "total_unknown:" << total_unknown << '\n';
-  for (int i = 0; i < remaining_unknown_points_count; ++i) {
-    std::cerr << remaining_unknown_points[i].r << ' ' << remaining_unknown_points[i].c << ' '
-              << remaining_unknown_points[i].mine_probability << '\n';
-  }
+  //   std::cerr << "remaining_unknown_points\n"
+  //             << "total_mines:" << total_mines << '\n'
+  //             << "total_seen_mines:" << total_seen_mines << '\n'
+  //             << "total_unknown:" << total_unknown << '\n';
+  //   for (int i = 0; i < remaining_unknown_points_count; ++i) {
+  //     std::cerr << remaining_unknown_points[i].r << ' ' << remaining_unknown_points[i].c << ' '
+  //               << remaining_unknown_points[i].mine_probability << '\n';
+  //   }
   if (remaining_unknown_points[remaining_unknown_points_count - 1].mine_probability >
       1 - remaining_unknown_points[0].mine_probability) {
     Execute(remaining_unknown_points[remaining_unknown_points_count - 1].r,

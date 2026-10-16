@@ -18,7 +18,6 @@ int game_state;  // The state of the game, 0 for continuing, 1 for winning, -1 f
 char **map;
 int **visited;  // 0 表示未访问过，1 表示非雷访问过或雷标记过，2 表示非雷被错标成雷或者访问到未标的雷
 int **near_mine_count;
-// if map[i][j] with a mine is marked, visted[i][j]=1; if map[i][j] with no mine is visited, visted[i][j]=1;
 int marked_mine_count;
 int visit_count;
 
